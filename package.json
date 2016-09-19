@@ -3,7 +3,13 @@
   "version": "0.0.1",
   "description": "A Node-RED node to send bulk SMS messages via the Twilio service.",
   "author": "Robert Jakab <gugurete@gmail.com>",
-  "keywords": ["node-red", "twilio", "sms", "bulk", "throttle"],
+  "keywords": [
+    "node-red",
+    "twilio",
+    "sms",
+    "bulk",
+    "throttle"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/gugurete/node-red-contrib-sms-twilio.git"
@@ -13,5 +19,8 @@
     "nodes": {
       "sms": "sms.js"
     }
+  },
+  "dependencies": {
+    "twilio": "^2.11.0"
   }
 }
