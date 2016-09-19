@@ -16,6 +16,6 @@ Run the following command in your Node-RED user directory - typically `~/.node-r
 Properties
 ----------
 
-[Message] Text to be sent. If left empty it will use msg.payload
-[Numbers] Comma separated list of mobile numbers. Defaults to msg.topic
-[Throttle] Number of milliseconds to wait between messages. Might be useful if the SMS provider throttles the message rates.
+- **Message** Text to be sent. If left empty it will use msg.payload
+- **Numbers** Comma separated list of mobile numbers. Defaults to msg.topic
+- **Throttle** Number of milliseconds to wait between messages. Might be useful if the SMS provider throttles the message rates.
