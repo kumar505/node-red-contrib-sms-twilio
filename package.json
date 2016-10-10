@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-sms-twilio",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A Node-RED node to send bulk SMS messages via the Twilio service.",
   "author": "Robert Jakab <gugurete@gmail.com>",
   "keywords": [
