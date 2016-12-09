@@ -10,29 +10,30 @@ module.exports = function (RED) {
     }
   }
 
-  function twilioResponse(node, err, message) {
+  function twilioResponse(node, msg, err, message) {
     node.sent++;
     if (err) {
       node.failed++;
-      console.log(err)
-      node.send({
-        payload: err
-      })
+      node.error(err)
+      node.failedMessages.push(err)
     } else {
       if (message.from && message.from.indexOf('1500555000') >= 0) {
         message.sid += '-TEST'
       }
       node.delivered++;
       node.log(message.sid + ' | ' + message.to + ' | ' + message.body)
-      node.send({
-        payload: {
-          sid: message.sid,
-          to: message.to,
-          body: message.body
-        }
+      node.sentMessages.push({
+        sid: message.sid,
+        to: message.to,
+        body: message.body
       })
     }
     if (node.buffer.length === 0) {
+      msg.payload = {
+        success : node.sentMessages,
+        failed : node.failedMessages
+      }
+      node.send(msg)
       node.status({
         fill: "yellow",
         shape: "dot",
@@ -66,11 +67,11 @@ module.exports = function (RED) {
     })
   }
 
-  function twilioSMS(node, to, text) {
+  function twilioSMS(node, to, text, msg) {
     if (node.twilioClient && node.twilio.credentials.from) {
-      node.twilioClient.messages.create(twilioRequest(node.twilio.credentials.from, to, text), twilioResponse.bind(undefined, node))
+      node.twilioClient.messages.create(twilioRequest(node.twilio.credentials.from, to, text), twilioResponse.bind(undefined, node, msg))
     } else {
-      twilioResponse(node, null, {
+      twilioResponse(node, msg, null, {
         'sid': 'SIMULATED',
         'to': to,
         'body': text
@@ -90,7 +91,7 @@ module.exports = function (RED) {
         node.intervalID = -1
       } else {
         var elem = node.buffer.shift();
-        twilioSMS(node, elem.to, elem.text);
+        twilioSMS(node, elem.to, elem.text, msg);
         if (node.buffer.length > 0) {
           node.status({
             text: node.buffer.length + ' pending',
@@ -108,6 +109,8 @@ module.exports = function (RED) {
     this.delivered = 0
     this.failed = 0
     this.sent = 0
+    this.sentMessages = []
+    this.failedMessages = []
     this.twilio = RED.nodes.getNode(config.twilio)
     if (this.twilio) {
       node.status({
