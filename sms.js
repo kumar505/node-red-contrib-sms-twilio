@@ -12,9 +12,9 @@ module.exports = function (RED) {
 
   function twilioResponse(node, msg, err, message) {
     node.sent++;
+    node.internalSent++;
     if (err) {
       node.failed++;
-      node.error(err)
       node.failedMessages.push(err)
     } else {
       if (message.from && message.from.indexOf('1500555000') >= 0) {
@@ -29,11 +29,14 @@ module.exports = function (RED) {
       })
     }
     if (node.buffer.length === 0) {
-      msg.payload = {
-        success : node.sentMessages,
-        failed : node.failedMessages
+      if(node.bufferLength === (node.internalSent)) {
+        node.internalSent = 0
+        msg.payload = {
+          sent : node.sentMessages,
+          failed : node.failedMessages
+        }
+        node.send(msg)
       }
-      node.send(msg)
       node.status({
         fill: "yellow",
         shape: "dot",
@@ -82,6 +85,9 @@ module.exports = function (RED) {
   function throtlleSMS(node, msg) {
     Array.prototype.push.apply(node.buffer, makeNumberMessagePairs(node, msg))
       // if timer already running there is nothing to do
+    node.bufferLength = node.buffer.length
+    node.sentMessages = []
+    node.failedMessages = []
     if (node.intervalID !== -1) {
       return;
     }
@@ -109,6 +115,7 @@ module.exports = function (RED) {
     this.delivered = 0
     this.failed = 0
     this.sent = 0
+    this.internalSent = 0
     this.sentMessages = []
     this.failedMessages = []
     this.twilio = RED.nodes.getNode(config.twilio)
@@ -130,11 +137,15 @@ module.exports = function (RED) {
     this.numbers = config.numbers
     this.throttle = config.throttle || 0
     this.buffer = [];
+    this.bufferLength = 0
     this.intervalID = -1;
     this.on("input", throtlleSMS.bind(undefined, this))
     this.on("close", function () {
       clearInterval(this.intervalID)
       this.buffer = []
+      this.bufferLength = 0
+      this.sentMessages = []
+      this.failedMessages = []
     })
   }
 
